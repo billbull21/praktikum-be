@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 var User = require("../model/User");
 const knex = require("../../db/knex");
 const bcrypt = require("bcrypt");
+const moment = require("moment");
+
 exports.get = async function (req, res) {
   try {
     let users = await User.query();
@@ -48,6 +50,20 @@ exports.getById = async function (req, res) {
   }
 };
 exports.create = async function (req, res) {
+  /* #swagger.tags = ['User']
+     #swagger.description = 'Endpoint to createUser' 
+  */
+  /* #swagger.parameters['body'] = {
+      name: 'user',
+      in: 'body',
+      description: 'User information.',
+      required: true,
+      schema: { $ref: '#/definitions/UserRequestFormat' }
+  } */
+  /* #swagger.security = [{
+    "apiKeyAuth": []
+  }] */
+
   try {
     const errors = validationResult(req);
     console.log("ERROR", errors);
@@ -107,14 +123,87 @@ exports.create = async function (req, res) {
     });
   }
 };
+
 exports.update = async function (req, res) {
+  /* #swagger.tags = ['User']
+    #swagger.description = 'Endpoint untuk mengUpdate Data User' */
+  /* #swagger.parameters['body'] = {
+    name: 'user',
+    in: 'body',
+    description: 'User information.',
+    required: true,
+    schema: { $ref: '#/definitions/UserRequestFormat' }
+  } */
+  /* #swagger.security = [{
+    "apiKeyAuth": []
+  }] */
+
+  const data = req.body;
   const { id } = req.params;
-  res.status(200).json({
-    success: true,
-    message: "Endpoint Update User",
-    id: id,
-  });
+  // Check Form Validation
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({
+      success: false,
+      errors: errors.array(),
+    });
+  try {
+    const cek_user = await User.query()
+      .where((builder) => {
+        builder.where("username", data.username).orWhere("email", data.email);
+      })
+      .where("id", "<>", id)
+      .then((onCheck) => {
+        console.log("Check, is Exist in other row :", onCheck);
+        return onCheck;
+      })
+      .catch((err) => {
+        console.log("err", err);
+        return err;
+      });
+    console.log("CEK USER:", cek_user);
+    // Cek Jika data ada, maka beri return Data Email dna Username sudah terdaftar;
+    if (cek_user.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Username atau Email Sudah Terdaftar !",
+      });
+    } else {
+      const dataUpdate = await User.query()
+        .patch({
+          nama: data.nama,
+          username: data.username,
+          email: data.email,
+          telp: data.telp,
+          updated_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
+        })
+        .where("id", id)
+        .returning("nama", "username", "email")
+        .first()
+        .then((resp) => {
+          console.log("RESP:", resp);
+          res.status(200).json({
+            success: true,
+            message: "Data user berhasil di Update",
+            data: resp,
+          });
+        })
+        .catch((err) => {
+          res.status(500).json({
+            success: false,
+            message: "Data user gagal di Update !",
+          });
+        });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      message: "Data user gagal di Update !",
+    });
+  }
 };
+
 exports.delete = async function (req, res) {
   try {
     let users = await User.query().deleteById(req.params.id);
@@ -140,6 +229,20 @@ exports.delete = async function (req, res) {
 };
 
 exports.login = async function (req, res, next) {
+  /* #swagger.tags = ['User']
+     #swagger.description = 'Endpoint to Login' 
+  */
+  /* #swagger.parameters['body'] = {
+      name: 'user',
+      in: 'body',
+      description: 'Data Login.',
+      required: true,
+      schema: { $ref: '#/definitions/UserRequestFormat' }
+  } */
+  /* #swagger.security = [{
+    "apiKeyAuth": []
+  }] */
+
   const errors = validationResult(req);
   if (!errors.isEmpty())
     return res.status(400).json({

@@ -6,6 +6,11 @@ const morgan = require("morgan");
 const routerV1 = require("./routes/v1/index");
 const app = express();
 
+const swaggerUI = require("swagger-ui-express");
+const swaggerFile = require("./swagger_output.json");
+
+app.use("/doc", swaggerUI.serve, swaggerUI.setup(swaggerFile));
+
 app.get("/ping", (req, res) => {
   res.send({
     error: false,
