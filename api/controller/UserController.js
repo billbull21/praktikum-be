@@ -233,11 +233,11 @@ exports.login = async function (req, res, next) {
      #swagger.description = 'Endpoint to Login' 
   */
   /* #swagger.parameters['body'] = {
-      name: 'user',
+      name: 'login',
       in: 'body',
       description: 'Data Login.',
       required: true,
-      schema: { $ref: '#/definitions/UserRequestFormat' }
+      schema: { $ref: '#/definitions/LoginRequestFormat' }
   } */
   /* #swagger.security = [{
     "apiKeyAuth": []
