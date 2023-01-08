@@ -297,3 +297,45 @@ exports.login = async function (req, res, next) {
     });
   }
 };
+
+exports.updateFotoProfil = async function (req, res) {
+  /* #swagger.tags = ['User']
+    #swagger.description = 'Endpoint untuk mengUpdate Foto Profil User' */
+  /* #swagger.consumes = ['multipart/form-data']
+    #swagger.parameters['file'] = {
+    type: 'file',
+    in: 'formData',
+    description: 'Foto profil user.',
+    required: true
+    } */
+  try {
+    const file = req.file;
+    const { id } = req.params;
+    const dataUpdate = await User.query()
+      .patch({
+        foto: "uploads/" + file.filename,
+        updated_at: moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
+      })
+      .where("id", id)
+      .returning("id", "nama", "foto")
+      .first()
+      .then((resp) => {
+        res.status(200).json({
+          success: true,
+          message: "Data user berhasil di Update",
+          data: resp,
+        });
+      })
+      .catch((err) => {
+        res.status(500).json({
+          success: false,
+          message: "Data user gagal di Update !",
+        });
+      });
+  } catch (err) {
+    console.log(err);
+    res
+      .status(500)
+      .json({ success: false, message: "Data user gagal di Update !" });
+  }
+};

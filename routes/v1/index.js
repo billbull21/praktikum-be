@@ -5,6 +5,7 @@ const {
   updateUserValidation,
 } = require("../../middleware/input-validation");
 const { authenticateJWT } = require("../../middleware/authentication");
+const { upload } = require("../../middleware/file");
 var router = express.Router();
 router.get("/", (req, res) => {
   return res.send({
@@ -19,4 +20,10 @@ router.post("/user", createUserValidation, userApi.create);
 router.put("/user/:id", authenticateJWT, updateUserValidation, userApi.update);
 router.delete("/user/:id", userApi.delete);
 router.post("/user/login", loginValidation, userApi.login);
+router.put(
+  "/user/foto-profil/:id",
+  authenticateJWT,
+  upload("uploads").single("file"),
+  userApi.updateFotoProfil
+);
 module.exports = router;
