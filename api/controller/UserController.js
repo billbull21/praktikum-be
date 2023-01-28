@@ -4,6 +4,10 @@ var User = require("../model/User");
 const knex = require("../../db/knex");
 const bcrypt = require("bcrypt");
 const moment = require("moment");
+const {
+  sendEmailOnCreateUser,
+  sendEmailOnCreateUserWithTemplate,
+} = require("../services/email.service");
 
 exports.get = async function (req, res) {
   try {
@@ -94,6 +98,7 @@ exports.create = async function (req, res) {
           "gender",
         ])
         .then(async (users) => {
+          const kirim_email = await sendEmailOnCreateUserWithTemplate(users);
           res.status(200).json({
             success: true,
             message: "Anda Berhasil Terdaftar di Sistem Praktikum! ",
